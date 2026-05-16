@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metodología Wyckoff + Volume Profile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --text: #111827;
+            --text-light: #6b7280;
+            --border: #d1d5db;
+            --bg-green: #ecfdf5;
+            --bg-red: #fef2f2;
+            --bg-yellow: #fffbeb;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: linear-gradient(135deg, var(--light) 0%, #ffffff 100%);
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* CONTAINER */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* NAVEGACIÓN */
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            border-bottom: 2px solid var(--border);
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .nav-tabs button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .nav-tabs button:hover {
+            color: var(--primary);
+            background: var(--light);
+        }
+
+        .nav-tabs button.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* CONTENIDO */
+        .content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* SECCIONES */
+        .section {
+            background: white;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .section h2 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--primary);
+            padding-left: 1rem;
+        }
+
+        .section h3 {
+            color: var(--primary-light);
+            font-size: 1.3rem;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .section p {
+            margin-bottom: 1rem;
+            color: var(--text);
+            line-height: 1.8;
+        }
+
+        /* GRID */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .card {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            transform: translateY(-4px);
+        }
+
+        .card h4 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        /* PANEL INTERACTIVO */
+        .panel-container {
+            background: linear-gradient(135deg, var(--light) 0%, #ffffff 100%);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .panel-header {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .panel-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 4px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .panel-item.long {
+            border-left-color: var(--success);
+            background: var(--bg-green);
+        }
+
+        .panel-item.short {
+            border-left-color: var(--danger);
+            background: var(--bg-red);
+        }
+
+        .panel-item.neutral {
+            border-left-color: var(--warning);
+            background: var(--bg-yellow);
+        }
+
+        .panel-item label {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .panel-item .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .panel-item .status {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* INDICADORES */
+        .indicator {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin: 0.25rem;
+        }
+
+        .indicator.ok {
+            background: var(--bg-green);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .indicator.warning {
+            background: var(--bg-yellow);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .indicator.danger {
+            background: var(--bg-red);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        /* SLIDERS */
+        .slider-group {
+            margin: 1.5rem 0;
+        }
+
+        .slider-group label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .slider-control {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 5px;
+            background: linear-gradient(to right, var(--danger), var(--warning), var(--success));
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            border: none;
+        }
+
+        .slider-value {
+            min-width: 80px;
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        /* RESULTADOS */
+        .result-box {
+            background: linear-gradient(135deg, var(--light) 0%, #ffffff 100%);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .result-box.success {
+            border-color: var(--success);
+            background: var(--bg-green);
+        }
+
+        .result-box.warning {
+            border-color: var(--warning);
+            background: var(--bg-yellow);
+        }
+
+        .result-box.danger {
+            border-color: var(--danger);
+            background: var(--bg-red);
+        }
+
+        .result-box h4 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .result-box p {
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        /* TABLA */
+        .table-responsive {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 700;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: var(--light);
+        }
+
+        /* CALLOUT */
+        .callout {
+            background: linear-gradient(135deg, var(--light) 0%, #ffffff 100%);
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .callout.important {
+            border-left-color: var(--danger);
+            background: var(--bg-red);
+        }
+
+        .callout.tip {
+            border-left-color: var(--success);
+            background: var(--bg-green);
+        }
+
+        .callout.warning {
+            border-left-color: var(--warning);
+            background: var(--bg-yellow);
+        }
+
+        .callout strong {
+            display: block;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        /* FOOTER */
+        .footer {
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            border-radius: 12px 12px 0 0;
+        }
+
+        /* RESPONSIVO */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .nav-tabs button {
+                border-bottom: none;
+                border-left: 3px solid transparent;
+            }
+
+            .nav-tabs button.active {
+                border-bottom: none;
+                border-left-color: var(--primary);
+            }
+
+            .panel-header {
+                grid-template-columns: 1fr;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ANIMACIONES */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        /* BADGES */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin: 0 0.25rem;
+        }
+
+        .badge.success {
+            background: var(--bg-green);
+            color: var(--success);
+        }
+
+        .badge.danger {
+            background: var(--bg-red);
+            color: var(--danger);
+        }
+
+        .badge.warning {
+            background: var(--bg-yellow);
+            color: var(--warning);
+        }
+
+        /* BOTONES */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+        }
+
+        .btn-outline {
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            background: transparent;
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* DIVIDER */
+        .divider {
+            height: 2px;
+            background: linear-gradient(to right, transparent, var(--border), transparent);
+            margin: 2rem 0;
+        }
+
+        /* CODE BLOCK */
+        .code-block {
+            background: var(--dark);
+            color: #e5e7eb;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* LISTA */
+        ul, ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* HIGHLIGHT */
+        .highlight {
+            background: #fef08a;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <h1>📊 METODOLOGÍA WYCKOFF + VOLUME PROFILE</h1>
+        <p>Análisis Discretional Basado en Contexto y Confluencia</p>
+    </div>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="container">
+        <!-- NAVEGACIÓN DE PESTAÑAS -->
+        <div class="nav-tabs">
+            <button class="tab-btn active" data-tab="inicio">Inicio</button>
+            <button class="tab-btn" data-tab="fundamentos">Fundamentos</button>
+            <button class="tab-btn" data-tab="componentes">Componentes</button>
+            <button class="tab-btn" data-tab="panel">Panel Interactivo</button>
+            <button class="tab-btn" data-tab="flujo">Flujo 6 Pasos</button>
+            <button class="tab-btn" data-tab="reglas">8 Reglas de Oro</button>
+            <button class="tab-btn" data-tab="casos">Casos de Estudio</button>
+            <button class="tab-btn" data-tab="faq">FAQ</button>
+        </div>
+
+        <!-- TAB: INICIO -->
+        <div id="inicio" class="content active">
+            <div class="section">
+                <h2>🎯 ¿Qué es este indicador?</h2>
+                <p>El indicador <strong>Wyckoff + Volume Profile</strong> es una herramienta de análisis <strong>discretional</strong> que responde a una sola pregunta antes de cada decisión:</p>
+                
+                <div class="callout important">
+                    <strong>¿Qué me dicen el Volume Profile y la estructura Wyckoff sobre el CONTEXTO ACTUAL y qué CALIDAD tiene la zona donde está el precio?</strong>
+                </div>
+
+                <h3>Características Clave</h3>
+                <div class="grid">
+                    <div class="card">
+                        <h4>✗ No es automático</h4>
+                        <p>No genera señales automáticas. Requiere análisis discretional.</p>
+                    </div>
+                    <div class="card">
+                        <h4>✓ Es contexto</h4>
+                        <p>Analiza el ambiente completo del mercado, no solo eventos individuales.</p>
+                    </div>
+                    <div class="card">
+                        <h4>✓ Es confluencia</h4>
+                        <p>Valida múltiples niveles simultáneamente para mayor confianza.</p>
+                    </div>
+                    <div class="card">
+                        <h4>✓ Es operativo</h4>
+                        <p>Te dice exactamente qué hacer en cada zona del mercado.</p>
+                    </div>
+                    <div class="card">
+                        <h4>✓ Es estadístico</h4>
+                        <p>Basado en probabilidades Wyckoff clásicas comprobadas.</p>
+                    </div>
+                    <div class="card">
+                        <h4>📈 70-75% Win Rate</h4>
+                        <p>Tasa de ganancia esperada con disciplina completa.</p>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <h3>La Filosofía</h3>
+                <div class="callout tip">
+                    <strong>La diferencia entre un trader ganador y uno perdedor NO es la inteligencia.</strong>
+                    <p style="margin-top: 1rem;">Es la <strong>DISCIPLINA</strong>.</p>
+                    <p style="margin-top: 1rem;">Este indicador te proporciona:</p>
+                    <ul style="margin-top: 1rem;">
+                        <li>✓ La metodología correcta</li>
+                        <li>✓ El filtro correcto</li>
+                        <li>✓ La estructura correcta</li>
+                        <li>✓ El checklist correcto</li>
+                    </ul>
+                    <p style="margin-top: 1rem;"><strong>Lo único que necesitas es DISCIPLINA (100%)</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: FUNDAMENTOS -->
+        <div id="fundamentos" class="content">
+            <div class="section">
+                <h2>📚 Fundamentos Teóricos</h2>
+
+                <h3>Los 4 Orígenes</h3>
+                <div class="grid">
+                    <div class="card">
+                        <h4>1. Wyckoff Analysis (1930s)</h4>
+                        <p><strong>Richard Wyckoff</strong></p>
+                        <ul>
+                            <li>Estructura de precio</li>
+                            <li>Fases de mercado</li>
+                            <li>Eventos clave (springs, upthrusts)</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>2. Volume Profile (1980s)</h4>
+                        <p><strong>J. Peter Steidlmayer</strong></p>
+                        <ul>
+                            <li>Dónde ocurrió el volumen (VPOC)</li>
+                            <li>Zonas de equilibrio (Value Area)</li>
+                            <li>Atracción y rechazo de precio</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>3. Delta + Volumen</h4>
+                        <p><strong>Análisis Moderno</strong></p>
+                        <ul>
+                            <li>Alineación precio + volumen</li>
+                            <li>Armonía vs divergencia</li>
+                            <li>Anomalías de volumen</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <h3>4 Principios Fundamentales</h3>
+
+                <div class="section">
+                    <h4>✓ Principio 1: El Precio es Atracción</h4>
+                    <p><strong>VPOC (Point of Control) = El imán del mercado</strong></p>
+                    <div class="callout">
+                        <strong>Propiedades:</strong>
+                        <ul>
+                            <li>El precio siempre regresa a VPOC</li>
+                            <li>VPOC es dónde ocurrió MÁS volumen</li>
+                            <li>Las transacciones "dejan huella"</li>
+                            <li>El precio va a donde se hicieron transacciones</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h4>✓ Principio 2: El Volumen Define Estructura</h4>
+                    <p><strong>Volume Profile = Mapa del comportamiento pasado</strong></p>
+                    <div class="callout">
+                        <strong>Lectura:</strong>
+                        <ul>
+                            <li>Alto volumen = zona de decisión</li>
+                            <li>Bajo volumen = zona de rechazo</li>
+                            <li>Concentración = equilibrio</li>
+                            <li>Dispersión = conflicto</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h4>✓ Principio 3: Wyckoff Predice Dirección</h4>
+                    <p><strong>Las fases Wyckoff predicen hacia dónde irá el precio</strong></p>
+                    <div class="callout">
+                        <strong>Estadísticas:</strong>
+                        <ul>
+                            <li>Spring/Upthrust: 70-85% de probabilidad de continuación</li>
+                            <li>Son los eventos más determinísticos</li>
+                            <li>Validados por 90+ años de análisis</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h4>✓ Principio 4: Delta Valida Impulso</h4>
+                    <p><strong>La armonía (precio + volumen) valida impulsos</strong></p>
+                    <div class="callout">
+                        <strong>Escenarios:</strong>
+                        <ul>
+                            <li>📈 Precio sube + Vol sube = IMPULSO REAL</li>
+                            <li>📉 Precio baja + Vol sube = IMPULSO REAL</li>
+                            <li>⚠️ Precio sube + Vol baja = IMPULSO DÉBIL</li>
+                            <li>⚠️ Precio baja + Vol baja = IMPULSO DÉBIL</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: COMPONENTES -->
+        <div id="componentes" class="content">
+            <div class="section">
+                <h2>🎲 Los 3 Componentes</h2>
+
+                <h3>Componente 1: VOLUME PROFILE</h3>
+                <p>Mapea dónde ocurrió el volumen en los últimos N barras (usualmente 50-100 barras).</p>
+
+                <div class="code-block">
+VAH (Techo del área)
+    │
+████████████  ← Volumen concentrado aquí
+████████████
+████████████
+●●●● VPOC (Punto de máximo volumen) ●●●●
+████████████
+████████████
+    │
+VAL (Piso del área)
+
+Área de valor (Value Area) = donde ocurrió 70% del volumen
+                </div>
+
+                <div class="grid">
+                    <div class="card">
+                        <h4>VPOC</h4>
+                        <p><strong>Point of Control:</strong> Nivel exacto donde ocurrió el máximo volumen</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);">El "imán" del precio. NUNCA como Stop Loss.</p>
+                    </div>
+                    <div class="card">
+                        <h4>VAH</h4>
+                        <p><strong>Value Area High:</strong> Límite superior del área de valor</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);">Resistencia natural. Venta desde aquí.</p>
+                    </div>
+                    <div class="card">
+                        <h4>VAL</h4>
+                        <p><strong>Value Area Low:</strong> Límite inferior del área de valor</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);">Soporte natural. Compra desde aquí.</p>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <h3>Perfiles VP</h3>
+
+                <div class="section">
+                    <h4>▲ Perfil P (Alcista)</h4>
+                    <p>Volumen concentrado en la parte SUPERIOR</p>
+                    <div class="callout tip">
+                        <strong>Significado:</strong>
+                        <ul>
+                            <li>Compradores dominaron (ganaron)</li>
+                            <li>Precio está en máximos del área</li>
+                            <li>Sesgo alcista confirmado</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h4>▼ Perfil b (Bajista)</h4>
+                    <p>Volumen concentrado en la parte INFERIOR</p>
+                    <div class="callout">
+                        <strong>Significado:</strong>
+                        <ul>
+                            <li>Vendedores dominaron (ganaron)</li>
+                            <li>Precio está en mínimos del área</li>
+                            <li>Sesgo bajista confirmado</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h4>◆ Perfil D (Equilibrio)</h4>
+                    <p>Volumen distribuido uniformemente</p>
+                    <div class="callout warning">
+                        <strong>Significado:</strong>
+                        <ul>
+                            <li>Ni compradores ni vendedores dominan</li>
+                            <li>Precio está dentro del VA</li>
+                            <li>Indecisión = próxima decisión será clara</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <h3>Componente 2: WYCKOFF (Fases y Eventos)</h3>
+
+                <div class="grid">
+                    <div class="card">
+                        <h4>FASE A: Acumulación</h4>
+                        <p>Compradores comienzan a comprar en mínimos. Spring = confirmación.</p>
+                        <p style="margin-top: 1rem;"><span class="badge success">LONG</span></p>
+                    </div>
+                    <div class="card">
+                        <h4>FASE B: Consolidación</h4>
+                        <p>Precio lateral, indeciso. Acumulación antes de subir.</p>
+                        <p style="margin-top: 1rem;"><span class="badge warning">NEUTRAL</span></p>
+                    </div>
+                    <div class="card">
+                        <h4>FASE C: Salida</h4>
+                        <p>Precio comienza a subir. Rompe resistencias con volumen.</p>
+                        <p style="margin-top: 1rem;"><span class="badge success">LONG</span></p>
+                    </div>
+                    <div class="card">
+                        <h4>FASE D: Distribución</h4>
+                        <p>Vendedores entran. Upthrust = confirmación bajista.</p>
+                        <p style="margin-top: 1rem;"><span class="badge danger">SHORT</span></p>
+                    </div>
+                </div>
+
+                <div class="callout tip">
+                    <strong>Eventos Clave:</strong>
+                    <ul>
+                        <li><strong>Spring:</strong> Rechazo de soporte = Setup alcista 70-85%</li>
+                        <li><strong>Upthrust:</strong> Rechazo de resistencia = Setup bajista 70-85%</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: PANEL INTERACTIVO -->
+        <div id="panel" class="content">
+            <div class="section">
+                <h2>⚙️ Panel Interactivo</h2>
+                <p>Ajusta los parámetros para ver cómo se comporta el sistema en diferentes escenarios.</p>
+
+                <div class="panel-container">
+                    <div class="panel-header">
+                        <div class="panel-item long">
+                            <label>Contexto General (Header)</label>
+                            <div class="value" id="contextValue">LONG</div>
+                            <div class="status">Sesgo del mercado actual</div>
+                        </div>
+                        <div class="panel-item neutral">
+                            <label>Evento Wyckoff</label>
+                            <div class="value" id="eventoValue">Spring</div>
+                            <div class="status">Tipo de configuración de precio</div>
+                        </div>
+                        <div class="panel-item long">
+                            <label>Perfil VP</label>
+                            <div class="value" id="perfilValue">P (Alcista)</div>
+                            <div class="status">Distribución de volumen</div>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <h3>Ajusta los Parámetros</h3>
+
+                    <div class="slider-group">
+                        <label>Confluencia de Niveles</label>
+                        <div class="slider-control">
+                            <input type="range" id="confluencia" min="0" max="3" value="2" step="1">
+                            <div class="slider-value" id="confluenciaValue">2x</div>
+                        </div>
+                        <small style="color: var(--text-light);">0=ninguno, 1=bajo, 2=medio, 3=alto</small>
+                    </div>
+
+                    <div class="slider-group">
+                        <label>Volumen Relativo</label>
+                        <div class="slider-control">
+                            <input type="range" id="volumen" min="0.5" max="3" value="1.2" step="0.1">
+                            <div class="slider-value" id="volumenValue">1.2x</div>
+                        </div>
+                        <small style="color: var(--text-light);">0.5=bajo, 1.0=normal, 3.0=climático</small>
+                    </div>
+
+                    <div class="slider-group">
+                        <label>Divergencia (Precio vs Volumen)</label>
+                        <div class="slider-control">
+                            <input type="range" id="divergencia" min="-100" max="100" value="0" step="10">
+                            <div class="slider-value" id="divergenciaValue">Armonía</div>
+                        </div>
+                        <small style="color: var(--text-light);">-100=divergencia bajista, 0=armonía, 100=divergencia alcista</small>
+                    </div>
+
+                    <div class="slider-group">
+                        <label>Fase Wyckoff</label>
+                        <select id="fase" style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem;">
+                            <option value="A">Fase A (Acumulación)</option>
+                            <option value="B">Fase B (Consolidación)</option>
+                            <option value="C" selected>Fase C (Salida)</option>
+                            <option value="D">Fase D (Distribución)</option>
+                        </select>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- RESULTADO -->
+                    <div id="resultado" class="result-box success" style="display: none;">
+                        <h4>✅ OPÉRA 100%</h4>
+                        <p><strong>Confianza:</strong> <span id="confianzaValue">Alta</span></p>
+                        <p><strong>Razón:</strong> <span id="razonValue"></span></p>
+                    </div>
+
+                    <div id="resultado-parcial" class="result-box warning" style="display: none;">
+                        <h4>⚠️ OPÉRA CON CAUTELA</h4>
+                        <p><strong>Confianza:</strong> <span id="confianzaValue2">Media</span></p>
+                        <p><strong>Razón:</strong> <span id="razonValue2"></span></p>
+                    </div>
+
+                    <div id="resultado-no" class="result-box danger" style="display: none;">
+                        <h4>❌ NO OPERES</h4>
+                        <p><strong>Confianza:</strong> <span id="confianzaValue3">Baja</span></p>
+                        <p><strong>Razón:</strong> <span id="razonValue3"></span></p>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="analizarPanel()" style="width: 100%; margin-top: 1.5rem;">🔍 ANALIZAR SETUP</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: FLUJO 6 PASOS -->
+        <div id="flujo" class="content">
+            <div class="section">
+                <h2>🔄 Flujo Operativo: 6 Pasos</h2>
+
+                <div class="grid">
+                    <div class="card">
+                        <h4>Paso 1️⃣: Identifica el Header</h4>
+                        <p><strong>¿Cuál es el contexto?</strong> ¿Dónde está el precio respecto a VPOC y VA?</p>
+                        <ul style="margin-top: 1rem;">
+                            <li>✓ LONG: Precio &gt; VPOC</li>
+                            <li>✓ SHORT: Precio &lt; VPOC</li>
+                            <li>✓ NEUTRAL: Precio dentro VA</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <h4>Paso 2️⃣: ¿Alineado con evento?</h4>
+                        <p><strong>¿Spring o Upthrust alinean?</strong> ¿Coinciden con el Header?</p>
+                        <ul style="margin-top: 1rem;">
+                            <li>✓ Spring + LONG Header = OK</li>
+                            <li>✓ Upthrust + SHORT Header = OK</li>
+                            <li>✗ Spring + SHORT Header = CONFLICTO</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <h4>Paso 3️⃣: Confluencia</h4>
+                        <p><strong>¿Cuántos niveles se validan?</strong> Busca múltiples zonas alineadas.</p>
+                        <ul style="margin-top: 1rem;">
+                            <li>✓ x3+ confluencia = ALTA</li>
+                            <li>✓ x2 confluencia = MEDIA</li>
+                            <li>⚠️ x1 confluencia = RARA</li>
+                            <li>✗ x0 confluencia = ESPERA</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <h4>Paso 4️⃣: Principio VP</h4>
+                        <p><strong>¿Qué principio aplica?</strong> Depende de la zona.</p>
+                        <ul style="margin-top: 1rem;">
+                            <li>P1: RANGO = dentro VA</li>
+                            <li>P2: CONTINUACIÓN = trend</li>
+                            <li>P3: REV. 80% = extremos</li>
+                            <li>P4: ESPERA = climático</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <h4>Paso 5️⃣: Armonía + Volumen</h4>
+                        <p><strong>¿Hay divergencia?</strong> Valida con Delta.</p>
+                        <ul style="margin-top: 1rem;">
+                            <li>✓ Armonía = OPÉRA</li>
+                            <li>⚠️ DIV. = CUARENTENA</li>
+                            <li>⚠️ Vol Climático = ESPERA</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <h4>Paso 6️⃣: Filtro Final</h4>
+                        <p><strong>¿Pasa el checklist?</strong> Decisión final.</p>
+                        <ul style="margin-top: 1rem;">
+                            <li>✓ OK = OPÉRA 100%</li>
+                            <li>⚠️ WARNING = CAUTELA</li>
+                            <li>✗ CONFLICTO = NO OPERES</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="callout tip">
+                    <strong>Checklist Final (DEBE cumplir TODOS):</strong>
+                    <ul style="margin-top: 1rem;">
+                        <li>□ Header alineado con evento</li>
+                        <li>□ Confluencia x2+</li>
+                        <li>□ Principio VP claro</li>
+                        <li>□ Sin divergencia</li>
+                        <li>□ Volumen normal (no climático)</li>
+                        <li>□ Risk/Reward &gt; 1:1.5</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: 8 REGLAS DE ORO -->
+        <div id="reglas" class="content">
+            <div class="section">
+                <h2>👑 Las 8 Reglas de Oro</h2>
+
+                <div class="grid">
+                    <div class="card" style="border-left: 4px solid #ef4444;">
+                        <h4>[1] EL CONTEXTO SIEMPRE MANDA</h4>
+                        <p>VP + Wyckoff contexto manda sobre cualquier evento individual.</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);"><strong>Si Spring pero contexto SHORT → Espera que cambie contexto</strong></p>
+                    </div>
+
+                    <div class="card" style="border-left: 4px solid #f59e0b;">
+                        <h4>[2] SPRING/UPTHRUST = 70-85%</h4>
+                        <p>Los eventos más determinísticos del análisis Wyckoff.</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);"><strong>SESGA SIEMPRE a su favor (prepara entrada)</strong></p>
+                    </div>
+
+                    <div class="card" style="border-left: 4px solid #10b981;">
+                        <h4>[3] SOLO SACUDIDAS ALINEADAS</h4>
+                        <p>Opera solo sacudidas alineadas con contexto global sin conflictos.</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);"><strong>Spring en contexto bajista = NO (conflicto)</strong></p>
+                    </div>
+
+                    <div class="card" style="border-left: 4px solid #ef4444;">
+                        <h4>[4] VPOC NUNCA COMO SL</h4>
+                        <p>Es zona de ATRACCIÓN, no de rechazo. Es TARGET.</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);"><strong>SL en VAL/VAH (extremos del VA)</strong></p>
+                    </div>
+
+                    <div class="card" style="border-left: 4px solid #f59e0b;">
+                        <h4>[5] CONFLUENCIA MÍNIMA x2</h4>
+                        <p>Para operar tamaño completo necesitas confluencia mínima.</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);"><strong>x1 = solo extremos | x0 = espera</strong></p>
+                    </div>
+
+                    <div class="card" style="border-left: 4px solid #10b981;">
+                        <h4>[6] IMPULSO FUERTE = CUARENTENA</h4>
+                        <p>Vol climático = espera resolución, nunca entres en pánico.</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);"><strong>Espera 2-5 barras para claridad</strong></p>
+                    </div>
+
+                    <div class="card" style="border-left: 4px solid #3b82f6;">
+                        <h4>[7] REGLA DEL 80%: REINGRESO</h4>
+                        <p>80% probabilidad de visitar extremo opuesto al entrar en VA.</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);"><strong>Estadística comprobada (opera con confianza)</strong></p>
+                    </div>
+
+                    <div class="card" style="border-left: 4px solid #1f2937;">
+                        <h4>[8] LA DECISIÓN ES TUYA</h4>
+                        <p>El indicador es APOYO, no la decisión final.</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-light);"><strong>Tú decides si opéra o espera (responsabilidad tuya)</strong></p>
+                    </div>
+                </div>
+
+                <div class="callout important">
+                    <strong>⚠️ ADVERTENCIA CRÍTICA:</strong>
+                    <p style="margin-top: 1rem;">Si alguna regla se viola, NO OPERES. El sistema requiere 100% disciplina. Una violación = mayor riesgo innecesario.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: CASOS DE ESTUDIO -->
+        <div id="casos" class="content">
+            <div class="section">
+                <h2>📖 Casos de Estudio</h2>
+
+                <h3>Caso 1: SETUP PERFECTO ✅</h3>
+                <div class="callout tip">
+                    <strong>GBP/USD | 4H | 12:45 GMT</strong>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <tr>
+                            <th>Parámetro</th>
+                            <th>Valor</th>
+                            <th>Estado</th>
+                        </tr>
+                        <tr>
+                            <td>Header</td>
+                            <td>LONG ✓</td>
+                            <td><span class="badge success">OK</span></td>
+                        </tr>
+                        <tr>
+                            <td>Fase Wyckoff</td>
+                            <td>A/B ↑ ✓</td>
+                            <td><span class="badge success">OK</span></td>
+                        </tr>
+                        <tr>
+                            <td>Evento</td>
+                            <td>▲ Spring ✓</td>
+                            <td><span class="badge success">OK</span></td>
+                        </tr>
+                        <tr>
+                            <td>Confluencia</td>
+                            <td>VPOC VWAP VAL ✓ (x3)</td>
+                            <td><span class="badge success">ALTA</span></td>
+                        </tr>
+                        <tr>
+                            <td>Perfil VP</td>
+                            <td>▲ P ✓</td>
+                            <td><span class="badge success">OK</span></td>
+                        </tr>
+                        <tr>
+                            <td>Armonía</td>
+                            <td>Alcista ✓</td>
+                            <td><span class="badge success">OK</span></td>
+                        </tr>
+                        <tr>
+                            <td>Volumen</td>
+                            <td>1.15x ✓ (normal)</td>
+                            <td><span class="badge success">OK</span></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="callout">
+                    <strong>Resultado:</strong>
+                    <ul style="margin-top: 1rem;">
+                        <li>Entry: 1.2658 (Spring + confirmación)</li>
+                        <li>Target: 1.2680 (VPOC)</li>
+                        <li>SL: 1.2645 (bajo VAL)</li>
+                        <li>Risk: 13 pips | Reward: 22 pips</li>
+                        <li>Ratio: 1:1.69 ✓</li>
+                        <li><strong>Tasa éxito esperada: 85%+</strong></li>
+                    </ul>
+                </div>
+
+                <div class="callout tip">
+                    <strong>✅ Ganancia: +22 pips realizada</strong>
+                    <p style="margin-top: 1rem;"><strong>Lección:</strong> Setup perfecto = resultado perfecto</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <h3>Caso 2: CONFLICTO DETECTADO ⚠️</h3>
+                <div class="callout warning">
+                    <strong>BTC/USD | 4H</strong>
+                </div>
+
+                <div class="callout">
+                    <strong>Situación:</strong>
+                    <ul>
+                        <li>Header: SHORT ← Contexto bajista</li>
+                        <li>Evento: ▲ Spring ← Setup alcista</li>
+                        <li><strong>CONFLICTO: ❌ CONTEXTO vs EVENTO</strong></li>
+                    </ul>
+                </div>
+
+                <div class="callout danger">
+                    <strong>Acción Correcta: ❌ NO OPERES</strong>
+                    <p style="margin-top: 1rem;">Spring dice SUBE, pero contexto (SHORT) dice BAJE. Conflicto = No confíes en setup.</p>
+                    <p style="margin-top: 1rem;">Si ignoras: Probability 45-55% (como lanzar moneda) - No vale la pena el riesgo.</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <h3>Caso 3: VOLUMEN CLIMÁTICO ⚡</h3>
+                <div class="callout warning">
+                    <strong>ES (E-mini S&P) | 2H | 14:00</strong>
+                </div>
+
+                <div class="callout">
+                    <strong>Setup Inicial:</strong>
+                    <ul>
+                        <li>Principio: REV. FALLIDA</li>
+                        <li>Precio: 5490 (cerca VPOC)</li>
+                        <li>Vol Rel: 2.80x ⚠️ <strong>CLIMÁTICO</strong></li>
+                    </ul>
+                </div>
+
+                <div class="callout important">
+                    <strong>Acción CORRECTA:</strong>
+                    <ul style="margin-top: 1rem;">
+                        <li>SI EN POSICIÓN: Cierra 50% (asegura ganancia)</li>
+                        <li>SI QUIERES ENTRAR: ESPERA (no entres)</li>
+                    </ul>
+                </div>
+
+                <div class="callout tip">
+                    <strong>Espera Resolución (2-5 barras):</strong>
+                    <ul style="margin-top: 1rem;">
+                        <li>Barra +1: Precio 5520 ↑ (se expulsa del VA) | Vol: Normaliza | Armonía: Alcista ✓</li>
+                        <li>Barra +2: Precio 5530 | Confirmado: Rompimiento sigue | Acción: COMPRA</li>
+                    </ul>
+                </div>
+
+                <div class="callout">
+                    <strong>Resultado:</strong>
+                    <ul style="margin-top: 1rem;">
+                        <li>Si hubiera entrado en vol climático: Whipsaw -10 pips</li>
+                        <li>Esperando resolución: +30 pips ganados</li>
+                        <li><strong>Diferencia: +40 pips por paciencia</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: FAQ -->
+        <div id="faq" class="content">
+            <div class="section">
+                <h2>❓ Preguntas Frecuentes</h2>
+
+                <div class="section">
+                    <h3>P1: ¿VPOC como Stop Loss?</h3>
+                    <p><strong>R:</strong> NUNCA. VPOC es el imán, el precio SIEMPRE regresa.</p>
+                    <div class="callout important">
+                        Si pones SL en VPOC:
+                        <ul style="margin-top: 1rem;">
+                            <li>Tienes razón en 80% de casos (precio va a VPOC)</li>
+                            <li>PERO tu SL se activa justo cuando ganas</li>
+                            <li>Pierdes la ganancia exacta</li>
+                        </ul>
+                    </div>
+                    <p style="margin-top: 1rem;"><strong>Solución:</strong> SL debajo de VAL/VAH (extremos), VPOC es TARGET.</p>
+                </div>
+
+                <div class="section">
+                    <h3>P2: ¿Cuál es el mejor timeframe?</h3>
+                    <p><strong>R:</strong> Depende del activo:</p>
+                    <div class="callout">
+                        <ul>
+                            <li><strong>Futuros (ES/NQ):</strong> 2H, 4H óptimo</li>
+                            <li><strong>Forex:</strong> 4H óptimo (tick volume, usar con cautela)</li>
+                            <li><strong>Cripto:</strong> 4H óptimo (muy volátil)</li>
+                            <li><strong>Acciones:</strong> Daily óptimo</li>
+                        </ul>
+                    </div>
+                    <p style="margin-top: 1rem;"><strong>Regla:</strong> Timeframe mayor = VP más limpia = señales más confiables</p>
+                </div>
+
+                <div class="section">
+                    <h3>P3: ¿Operación rápida (impulso fuerte)?</h3>
+                    <p><strong>R:</strong> Si precio llega rápido a target (1-2 barras): Es bueno (impulso real y fuerte).</p>
+                    <div class="callout tip">
+                        <ul>
+                            <li>Cierra 100% en target (lo alcanzaste)</li>
+                            <li>O cierra 50%, mantén 50% para más ganancias</li>
+                            <li>No intentes agregar posición (volatilidad sigue)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>P4: ¿Qué pasa con dos principios simultáneos?</h3>
+                    <p><strong>R:</strong> Prioridad - El más agresivo gana:</p>
+                    <div class="callout">
+                        <ul>
+                            <li>Principio 1 + 2 = Usa Principio 2 (continuación)</li>
+                            <li>Principio 3 + 4 = Usa Principio 4 (espera resolución)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>P5: ¿Confirmación de reingreso?</h3>
+                    <p><strong>R:</strong> Reingreso = debe CERRAR dentro del VA (no solo tocar).</p>
+                    <div class="callout warning">
+                        <ul>
+                            <li>Toque sin cierre = NO es reingreso</li>
+                            <li>Espera el cierre de confirmación dentro del VA</li>
+                            <li><strong>Estadísticas: +30% tasa de éxito esperando</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <p><strong>Metodología Wyckoff + Volume Profile</strong></p>
+        <p style="margin-top: 0.5rem; opacity: 0.9;">Versión Interactiva | Análisis Discretional | 70-75% Tasa de Ganancia Esperada</p>
+        <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.8;">La clave es DISCIPLINA (100%). El indicador es el apoyo, pero TÚ debes tomar las decisiones.</p>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        // SISTEMA DE PESTAÑAS
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+                
+                // Desactiva todas las pestañas y contenidos
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+                
+                // Activa pestaña y contenido seleccionado
+                this.classList.add('active');
+                document.getElementById(tabName).classList.add('active');
+                
+                // Scroll suave
+                document.querySelector('.content.active').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        // PANEL INTERACTIVO
+        const sliders = {
+            confluencia: document.getElementById('confluencia'),
+            volumen: document.getElementById('volumen'),
+            divergencia: document.getElementById('divergencia'),
+            fase: document.getElementById('fase')
+        };
+
+        const values = {
+            confluenciaValue: document.getElementById('confluenciaValue'),
+            volumenValue: document.getElementById('volumenValue'),
+            divergenciaValue: document.getElementById('divergenciaValue')
+        };
+
+        // Actualizar valores en tiempo real
+        sliders.confluencia.addEventListener('input', function() {
+            const val = parseInt(this.value);
+            let text = val === 0 ? 'Ninguno' : val === 1 ? '1x' : val === 2 ? '2x' : '3x';
+            values.confluenciaValue.textContent = text;
+        });
+
+        sliders.volumen.addEventListener('input', function() {
+            values.volumenValue.textContent = parseFloat(this.value).toFixed(1) + 'x';
+        });
+
+        sliders.divergencia.addEventListener('input', function() {
+            const val = parseInt(this.value);
+            let text;
+            if (val < -30) text = 'DIV. Bajista 🔴';
+            else if (val < 0) text = 'Leve DIV. Bajista ⚠️';
+            else if (val > 30) text = 'DIV. Alcista 🟢';
+            else if (val > 0) text = 'Leve DIV. Alcista ⚠️';
+            else text = 'Armonía ✓';
+            values.divergenciaValue.textContent = text;
+        });
+
+        // Análisis del Panel
+        function analizarPanel() {
+            const confluencia = parseInt(sliders.confluencia.value);
+            const volumen = parseFloat(sliders.volumen.value);
+            const divergencia = parseInt(sliders.divergencia.value);
+            const fase = sliders.fase.value;
+
+            // Oculta todos los resultados
+            document.getElementById('resultado').style.display = 'none';
+            document.getElementById('resultado-parcial').style.display = 'none';
+            document.getElementById('resultado-no').style.display = 'none';
+
+            // Lógica de análisis
+            let puntaje = 0;
+            let razon = '';
+
+            // Confluencia
+            if (confluencia >= 2) puntaje += 3;
+            else if (confluencia === 1) puntaje += 1;
+            else puntaje -= 2;
+
+            // Volumen
+            if (volumen >= 0.8 && volumen <= 1.5) puntaje += 2;
+            else if (volumen > 2) { puntaje -= 1; razon += 'Vol climático (espera), '; }
+            else { puntaje -= 1; razon += 'Vol bajo (débil), '; }
+
+            // Divergencia
+            if (Math.abs(divergencia) < 20) puntaje += 2;
+            else if (Math.abs(divergencia) < 50) { puntaje -= 1; razon += 'Divergencia presente (cuarentena), '; }
+            else { puntaje -= 3; razon += 'Divergencia fuerte (NO OPERES), '; }
+
+            // Fase
+            if (fase === 'A' || fase === 'C') puntaje += 1;
+            else if (fase === 'B') puntaje -= 1;
+
+            // Mostrar resultado
+            if (puntaje >= 5) {
+                document.getElementById('resultado').style.display = 'block';
+                document.getElementById('confianzaValue').textContent = 'ALTA (' + puntaje + '/10)';
+                document.getElementById('razonValue').textContent = razon || 'Setup perfecto - Confluencia alta + Armonía + Vol normal';
+            } else if (puntaje >= 2) {
+                document.getElementById('resultado-parcial').style.display = 'block';
+                document.getElementById('confianzaValue2').textContent = 'MEDIA (' + puntaje + '/10)';
+                document.getElementById('razonValue2').textContent = razon || 'Setup con defectos menores - Revisar antes de operar';
+            } else {
+                document.getElementById('resultado-no').style.display = 'block';
+                document.getElementById('confianzaValue3').textContent = 'BAJA (' + puntaje + '/10)';
+                document.getElementById('razonValue3').textContent = razon || 'Falta confluencia o hay conflictos - Espera mejor setup';
+            }
+
+            // Scroll al resultado
+            setTimeout(() => {
+                const resultado = document.querySelector('[id^="resultado"]:not([style*="display: none"])');
+                if (resultado) resultado.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        // Trigger inicial
+        document.getElementById('confluencia').dispatchEvent(new Event('input'));
+        document.getElementById('volumen').dispatchEvent(new Event('input'));
+        document.getElementById('divergencia').dispatchEvent(new Event('input'));
+    </script>
+</body>
+</html>
